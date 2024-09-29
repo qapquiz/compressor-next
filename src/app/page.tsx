@@ -10,9 +10,9 @@ export default function Home() {
 				<h1 className="text-xl font-mono">COMPRESSOR</h1>
 				<WalletButton />
 			</header>
-			<main>
+			<main className="flex flex-col flex-1">
 				<h2 className="text-lg font-mono">My Tokens</h2>
-				<div className="border p-4">
+				<div className="border p-4 h-full">
 					<TokenList />
 				</div>
 			</main>

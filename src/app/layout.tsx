@@ -29,11 +29,11 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
 			>
 				<ReactQueryProvider>
 					<SolanaProvider>
-						<div className="w-screen h-screen	flex items-center justify-center">
+						<div className="bg-black w-screen h-screen flex items-center justify-center">
 							{children}
 						</div>
 					</SolanaProvider>

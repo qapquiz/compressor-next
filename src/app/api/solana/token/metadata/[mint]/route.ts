@@ -7,6 +7,8 @@ import { PublicKey } from "@solana/web3.js";
 
 const TOKEN_IMAGE_URL: Record<string, string> = {
 	"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png", // USDC
+	"orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE/logo.png", // orca
+	"JxxWsvm9jHt4ah7DT9NuLyVLYZcZLUdPD93PcPQ71Ka": "https://i.pinimg.com/originals/cb/87/f6/cb87f6e8152961be45a5642ef72c391f.jpg",
 }
 
 export async function GET(_request: Request, { params }: { params: { mint: string } }) {
@@ -29,12 +31,10 @@ export async function GET(_request: Request, { params }: { params: { mint: strin
 				symbol: digitalAsset.metadata.symbol,
 				image: TOKEN_IMAGE_URL[digitalAsset.publicKey],
 				decimals: digitalAsset.mint.decimals,
+				isCompressed: false,
 			} as TokenMetadata
 		);
 	}
-
-	console.log("digitalAsset", digitalAsset.metadata.name);
-	console.log("uri", digitalAsset.metadata.uri)
 
 	// get token from metadata
 	const metadataResponse = await fetch(digitalAsset.metadata.uri);
@@ -43,6 +43,7 @@ export async function GET(_request: Request, { params }: { params: { mint: strin
 	const metadata = {
 		...jsonText,
 		decimals: digitalAsset.mint.decimals,
+		isCompressed: false,
 	};
 
 	TokenMetadataSchema.parse(metadata);

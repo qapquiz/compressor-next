@@ -1,30 +1,76 @@
+"use client"
+
 import { TokenItem } from "./TokenItem";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useQuery } from "@tanstack/react-query";
 import { getTokens } from "@/app/lib/solana";
-import { PublicKey } from "@solana/web3.js";
+import { useEffect, useRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 export function TokenList() {
-	// const { publicKey, connected } = useWallet();
-	// const { connection } = useConnection();
-	const publicKey = new PublicKey("87bdcSg4zvjExbvsUSbGifYUp75JdLhLafjgwvCjzjkA")
+	const parentRef = useRef<HTMLDivElement>(null);
+	const [parentHeight, setParentHeight] = useState(0);
+	useEffect(() => {
+		const updateHeight = () => {
+			if (parentRef.current) {
+				setParentHeight(parentRef.current.clientHeight);
+			}
+		}
 
-	const { data: parsedTokenWithMetadatas } = useQuery({
+		updateHeight();
+
+		window.addEventListener('resize', updateHeight);
+
+		return () => {
+			window.removeEventListener('resize', updateHeight);
+		}
+	}, [])
+
+	const { publicKey, connected } = useWallet();
+
+	const { data: parsedTokenWithMetadatas, isLoading: isLoadingTokens } = useQuery({
 		queryKey: ["tokens", publicKey],
 		queryFn: () => {
-			// if (!(connected && publicKey)) {
-			// 	return [];
-			// }
+			if (!(publicKey && connected)) {
+				return [];
+			}
 
 			return getTokens(undefined, publicKey);
 		},
 	});
 
+	const rowVirtualizer = useVirtualizer({
+		count: parsedTokenWithMetadatas?.length ?? 0,
+		getScrollElement: () => parentRef.current,
+		estimateSize: () => 64,
+	})
+
 	return (
-		<div className="flex flex-col">
-			{parsedTokenWithMetadatas?.map((tokenWithMetadata) => (
-				<TokenItem key={tokenWithMetadata.token.info.mint} tokenWithMetadata={tokenWithMetadata} />
-			))}
+		<div ref={parentRef} className="h-full overflow-y-auto">
+			<div className={`h-[${rowVirtualizer.getTotalSize()}px] w-full relative`}>
+				{rowVirtualizer.getVirtualItems().map((virtualItem) => {
+					console.log(JSON.stringify(virtualItem, null, 2))
+					if (parsedTokenWithMetadatas) {
+						return (
+							<div
+								key={virtualItem.key}
+								style={{
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									width: '100%',
+									height: `${virtualItem.size}px`,
+									transform: `translateY(${virtualItem.start}px)`
+								}}
+							>
+								<TokenItem tokenWithMetadata={parsedTokenWithMetadatas[virtualItem.index]} />
+							</div>
+						)
+					}
+
+					return (<span key={virtualItem.key} />)
+				})}
+			</div>
 		</div>
 	);
 }

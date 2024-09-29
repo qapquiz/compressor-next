@@ -5,6 +5,7 @@ export const TokenMetadataSchema = z.object({
 	symbol: z.string(),
 	image: z.string(),
 	decimals: z.number(),
+	isCompressed: z.boolean(),
 });
 
 export type TokenMetadata = z.infer<typeof TokenMetadataSchema>
