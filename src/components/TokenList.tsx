@@ -7,6 +7,7 @@ import { getTokens } from "@/app/lib/solana";
 import { useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CompressModal } from "./CompressModal";
+import { ParsedTokenAccountData, WithTokenMetadata } from "@/app/lib/types";
 
 export function TokenList() {
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -27,6 +28,7 @@ export function TokenList() {
 		}
 	}, [])
 
+	const [selectedToken, setSelectedToken] = useState<WithTokenMetadata<ParsedTokenAccountData>>()
 	const { publicKey, connected } = useWallet();
 
 	const { data: parsedTokenWithMetadatas, isLoading: isLoadingTokens } = useQuery({
@@ -73,7 +75,10 @@ export function TokenList() {
 										transform: `translateY(${virtualItem.start}px)`
 									}}
 								>
-									<TokenItem onClick={() => { document.getElementById("compressModal").showModal() }} tokenWithMetadata={parsedTokenWithMetadatas[virtualItem.index]} />
+									<TokenItem onClick={() => {
+										setSelectedToken(parsedTokenWithMetadatas[virtualItem.index]);
+										document.getElementById("compressModal")?.showModal();
+									}} tokenWithMetadata={parsedTokenWithMetadatas[virtualItem.index]} />
 								</div>
 							)
 						}
@@ -82,7 +87,7 @@ export function TokenList() {
 					})}
 				</div>
 			</div>
-			<CompressModal />
+			<CompressModal tokenWithMetadata={selectedToken}/>
 		</>
 	);
 }
