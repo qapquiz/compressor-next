@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getTokens } from "@/app/lib/solana";
 import { useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { CompressModal } from "./CompressModal";
 
 export function TokenList() {
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -42,35 +43,46 @@ export function TokenList() {
 	const rowVirtualizer = useVirtualizer({
 		count: parsedTokenWithMetadatas?.length ?? 0,
 		getScrollElement: () => parentRef.current,
-		estimateSize: () => 64,
+		estimateSize: () => 80,
 	})
 
-	return (
-		<div ref={parentRef} className="h-full overflow-y-auto">
-			<div className={`h-[${rowVirtualizer.getTotalSize()}px] w-full relative`}>
-				{rowVirtualizer.getVirtualItems().map((virtualItem) => {
-					console.log(JSON.stringify(virtualItem, null, 2))
-					if (parsedTokenWithMetadatas) {
-						return (
-							<div
-								key={virtualItem.key}
-								style={{
-									position: 'absolute',
-									top: 0,
-									left: 0,
-									width: '100%',
-									height: `${virtualItem.size}px`,
-									transform: `translateY(${virtualItem.start}px)`
-								}}
-							>
-								<TokenItem tokenWithMetadata={parsedTokenWithMetadatas[virtualItem.index]} />
-							</div>
-						)
-					}
-
-					return (<span key={virtualItem.key} />)
-				})}
+	if (isLoadingTokens) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<span className="loading loading-spinner loading-lg"></span>
 			</div>
-		</div>
+		);
+	}
+
+	return (
+		<>
+			<div ref={parentRef} className="h-full overflow-y-auto">
+				<div className={`h-[${rowVirtualizer.getTotalSize()}px] w-full relative`}>
+					{rowVirtualizer.getVirtualItems().map((virtualItem) => {
+						console.log(JSON.stringify(virtualItem, null, 2))
+						if (parsedTokenWithMetadatas) {
+							return (
+								<div
+									key={virtualItem.key}
+									style={{
+										position: 'absolute',
+										top: 0,
+										left: 0,
+										width: '100%',
+										height: `${virtualItem.size}px`,
+										transform: `translateY(${virtualItem.start}px)`
+									}}
+								>
+									<TokenItem onClick={() => { document.getElementById("compressModal").showModal() }} tokenWithMetadata={parsedTokenWithMetadatas[virtualItem.index]} />
+								</div>
+							)
+						}
+
+						return (<span key={virtualItem.key} />)
+					})}
+				</div>
+			</div>
+			<CompressModal />
+		</>
 	);
 }
