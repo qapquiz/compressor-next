@@ -71,7 +71,7 @@ export function TokenList() {
 					})}
 				</div>
 			</div>
-			<CompressModal tokenWithMetadata={selectedToken}/>
+			{ selectedToken && <CompressModal tokenWithMetadata={selectedToken}/> }
 		</>
 	);
 }

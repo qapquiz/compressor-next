@@ -1,6 +1,44 @@
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { Connection, type PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import type { TokenMetadata, ParsedTokenAccountData, WithTokenMetadata } from "./types";
+import { CompressedTokenProgram } from "@lightprotocol/compressed-token";
+
+const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: PublicKey = new PublicKey(
+	'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
+);
+
+export function findAssociatedTokenAddress(
+	walletAddress: PublicKey,
+	tokenMintAddress: PublicKey
+): PublicKey {
+	const [ata] = PublicKey.findProgramAddressSync(
+		[
+			walletAddress.toBuffer(),
+			TOKEN_PROGRAM_ID.toBuffer(),
+			tokenMintAddress.toBuffer(),
+		],
+		SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+	);
+
+	return ata;
+}
+
+export async function isCompressedTokenAlreadyInitialized({ connection, mint }: { connection: Connection, mint: PublicKey }): boolean {
+	const [pda] = PublicKey.findProgramAddressSync(
+		[
+			Buffer.from('pool'),
+			mint.toBuffer(),
+		],
+		CompressedTokenProgram.programId,
+	);
+
+	const accountInfo = await connection.getAccountInfo(pda);
+	if (!accountInfo) {
+		return false;
+	}
+
+	return true;
+}
 
 export async function getTokenMetadata(mint: string): Promise<TokenMetadata> {
 	const response = await fetch(`/api/solana/token/metadata/${mint}`)
