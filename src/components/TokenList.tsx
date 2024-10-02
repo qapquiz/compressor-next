@@ -4,30 +4,14 @@ import { TokenItem } from "./TokenItem";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useQuery } from "@tanstack/react-query";
 import { getTokens } from "@/app/lib/solana";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CompressModal } from "./CompressModal";
 import { ParsedTokenAccountData, WithTokenMetadata } from "@/app/lib/types";
+import { env } from "@/env/client";
 
 export function TokenList() {
 	const parentRef = useRef<HTMLDivElement>(null);
-	const [parentHeight, setParentHeight] = useState(0);
-	useEffect(() => {
-		const updateHeight = () => {
-			if (parentRef.current) {
-				setParentHeight(parentRef.current.clientHeight);
-			}
-		}
-
-		updateHeight();
-
-		window.addEventListener('resize', updateHeight);
-
-		return () => {
-			window.removeEventListener('resize', updateHeight);
-		}
-	}, [])
-
 	const [selectedToken, setSelectedToken] = useState<WithTokenMetadata<ParsedTokenAccountData>>()
 	const { publicKey, connected } = useWallet();
 
@@ -38,7 +22,7 @@ export function TokenList() {
 				return [];
 			}
 
-			return getTokens(undefined, publicKey);
+			return getTokens(env.NEXT_PUBLIC_SYNDICA_RPC_URL, publicKey);
 		},
 	});
 

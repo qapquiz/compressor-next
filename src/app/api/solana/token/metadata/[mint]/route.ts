@@ -1,5 +1,6 @@
 import { removeTrailingCommas } from "@/app/lib/json";
-import { TokenMetadata, TokenMetadataSchema } from "@/app/lib/types";
+import { type TokenMetadata, TokenMetadataSchema } from "@/app/lib/types";
+import { env } from "@/env/server";
 import { fetchDigitalAsset, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { fromWeb3JsPublicKey } from "@metaplex-foundation/umi-web3js-adapters";
@@ -14,7 +15,7 @@ const TOKEN_IMAGE_URL: Record<string, string> = {
 export async function GET(_request: Request, { params }: { params: { mint: string } }) {
 	const mint = params.mint;
 
-	const endpoint = process.env.SYNDICA_RPC;
+	const endpoint = env.SYNDICA_RPC_URL;
 	if (!endpoint) {
 		throw new Error("No environment variable SYNDICA_RPC");
 	}
