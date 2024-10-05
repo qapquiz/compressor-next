@@ -66,6 +66,15 @@ export function findAssociatedTokenAddress(
 	return ata;
 }
 
+export async function isAccountInitialized({ connection, address }: { connection: Connection, address: PublicKey }): Promise<boolean> {
+	const accountInfo = await connection.getAccountInfo(address);
+	if (!accountInfo) {
+		return false;
+	}
+
+	return true;
+}
+
 export async function isCompressedTokenAlreadyInitialized({ connection, mint }: { connection: Connection, mint: PublicKey }): Promise<boolean> {
 	const [pda] = PublicKey.findProgramAddressSync(
 		[
@@ -75,12 +84,7 @@ export async function isCompressedTokenAlreadyInitialized({ connection, mint }: 
 		CompressedTokenProgram.programId,
 	);
 
-	const accountInfo = await connection.getAccountInfo(pda);
-	if (!accountInfo) {
-		return false;
-	}
-
-	return true;
+	return isAccountInitialized({ connection, address: pda });
 }
 
 export async function getTokenMetadata(mint: string): Promise<TokenMetadata> {

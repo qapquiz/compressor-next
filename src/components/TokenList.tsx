@@ -1,30 +1,19 @@
-"use client"
-
 import { TokenItem } from "./TokenItem";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { TokenAccount } from "@/app/lib/types";
+import type { PublicKey } from "@solana/web3.js";
+import type { BN } from "@coral-xyz/anchor";
 
 type TokenListProps = {
 	tokenAccounts: TokenAccount[],
 	isLoading: boolean,
+	compress: (mint: PublicKey, amount: BN) => Promise<void>,
+	decompress: (mint: PublicKey, amount: BN) => Promise<void>,
 }
 
-export function TokenList({ tokenAccounts, isLoading }: TokenListProps) {
+export function TokenList({ tokenAccounts, isLoading, compress, decompress }: TokenListProps) {
 	const parentRef = useRef<HTMLDivElement>(null);
-	const [selectedToken, setSelectedToken] = useState<TokenAccount>()
-	// const { publicKey, connected } = useWallet();
-
-	// const { data: parsedTokenWithMetadatas, isLoading: isLoadingTokens } = useQuery({
-	// 	queryKey: ["tokens", publicKey],
-	// 	queryFn: () => {
-	// 		if (!(publicKey && connected)) {
-	// 			return [];
-	// 		}
-	//
-	// 		return getTokens(env.NEXT_PUBLIC_SYNDICA_RPC_URL, publicKey);
-	// 	},
-	// });
 
 	const rowVirtualizer = useVirtualizer({
 		count: tokenAccounts?.length ?? 0,
@@ -58,9 +47,11 @@ export function TokenList({ tokenAccounts, isLoading }: TokenListProps) {
 										transform: `translateY(${virtualItem.start}px)`
 									}}
 								>
-									<TokenItem onClick={() => {
-										setSelectedToken(tokenAccounts[virtualItem.index]);
-									}} tokenAccount={tokenAccounts[virtualItem.index]} />
+									<TokenItem
+										tokenAccount={tokenAccounts[virtualItem.index]}
+										compress={compress}
+										decompress={decompress}
+									/>
 								</div>
 							)
 						}

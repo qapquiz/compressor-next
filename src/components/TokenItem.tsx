@@ -1,7 +1,15 @@
 import type { TokenAccount } from "@/app/lib/types";
 import { Button } from "./ui/button";
+import type { PublicKey } from "@solana/web3.js";
+import type { BN } from "@coral-xyz/anchor";
 
-export function TokenItem({ tokenAccount, onClick }: { tokenAccount: TokenAccount, onClick: () => void }) {
+type TokenItemProps = {
+	tokenAccount: TokenAccount,
+	compress: (mint: PublicKey, amount: BN) => Promise<void>,
+	decompress: (mint: PublicKey, amount: BN) => Promise<void>,
+}
+
+export function TokenItem({ tokenAccount, compress, decompress }: TokenItemProps) {
 	function showBadge(isCompressed: boolean) {
 		return isCompressed ?
 			<div className="badge badge-sm badge-outline text-[#f2d3ab] border-[#f2d3ab]">COMPRESSED</div> :
@@ -11,7 +19,11 @@ export function TokenItem({ tokenAccount, onClick }: { tokenAccount: TokenAccoun
 	return (
 		<div
 			className="flex flex-row gap-4 items-top justify-between font-mono p-4 hover:bg-[#494d7e]"
-			onClick={() => { onClick() }}
+			onClick={() => {
+				tokenAccount.tokenType === 'compressed' ?
+					decompress(tokenAccount.mint, tokenAccount.amount) :
+					compress(tokenAccount.mint, tokenAccount.amount)
+			}}
 		>
 			<div className="flex flex-row gap-4 items-top">
 				<img

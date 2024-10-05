@@ -8,18 +8,22 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useEffect, useMemo, useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useQuery } from "@tanstack/react-query";
 import { env } from "@/env/client";
-import { getCompressedTokens, getTokens } from "@/app/lib/solana";
-import { createRpc } from "@lightprotocol/stateless.js";
+import { findAssociatedTokenAddress, getCompressedTokens, getTokens, isAccountInitialized, isCompressedTokenAlreadyInitialized } from "@/app/lib/solana";
+import { bn, buildTx, createRpc, defaultTestStateTreeAccounts, sendAndConfirmTx } from "@lightprotocol/stateless.js";
 import type { Rpc } from "@lightprotocol/stateless.js";
 import type { ReactNode } from "react";
 import { WalletButton } from "./solana/solana-provider";
 import { TokenList } from "./TokenList";
+import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
+import { ComputeBudgetProgram, PublicKey } from "@solana/web3.js";
+import type { BN } from "@coral-xyz/anchor";
+import { CompressedTokenProgram, selectMinCompressedTokenAccountsForTransfer } from "@lightprotocol/compressed-token";
+import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
 
 enum DialogState {
 	Idle = "Idle",
@@ -73,6 +77,10 @@ export default function PortfolioPage() {
 		initialData: [],
 	});
 
+	const rpc = useMemo(() => {
+		return createRpc(connection.rpcEndpoint, connection.rpcEndpoint);
+	}, [connection.rpcEndpoint]);
+
 	const isLoading = useMemo(
 		() => (isLoadingTokenAccounts || isLoadingCompressedTokenAccounts),
 		[isLoadingTokenAccounts, isLoadingCompressedTokenAccounts]
@@ -99,9 +107,69 @@ export default function PortfolioPage() {
 		fetchCompressedTokenAccountsError
 	]);
 
-	const compress = async () => {
+	const compress = async (mint: PublicKey, amount: BN) => {
 		try {
-			console.log("compress");
+			if (!connected || !publicKey || !signTransaction) throw new WalletNotConnectedError();
+
+			setAlertDialogOpen(true);
+			setDialogState(DialogState.ConfirmingTransaction);
+			setAlertDialogConent({
+				title: "Confirming Transaction",
+				message: "Please confirm the transaction in your wallet..."
+			});
+
+			const ixs = [
+				ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }),
+			];
+
+			if (!isCompressedTokenAlreadyInitialized({ connection, mint })) {
+				const createTokenPoolIx = await CompressedTokenProgram.createTokenPool({
+					feePayer: publicKey,
+					mint: mint,
+				});
+
+				ixs.push(createTokenPoolIx);
+			}
+
+			const sourceAta = findAssociatedTokenAddress(publicKey, mint);
+			const compressIx = await CompressedTokenProgram.compress({
+				payer: publicKey,
+				owner: publicKey,
+				source: sourceAta,
+				toAddress: publicKey,
+				mint: mint,
+				amount: amount,
+				outputStateTree: defaultTestStateTreeAccounts().merkleTree,
+			});
+
+			ixs.push(compressIx);
+
+			const { value: blockhashCtx } = await connection.getLatestBlockhashAndContext();
+			const tx = buildTx(ixs, publicKey, blockhashCtx.blockhash);
+
+			const signedTx = await signTransaction(tx);
+
+			setDialogState(DialogState.Processing);
+			setAlertDialogConent({
+				title: "Confirming Transaction",
+				message: "Please wait while the transaction is being confirmed..."
+			})
+
+			const txId = await sendAndConfirmTx(rpc, signedTx);
+
+			// refecth tokens
+			await refetchTokenAccounts();
+			await refetchCompressedTokenAccounts();
+
+			setDialogState(DialogState.Success);
+			setAlertDialogConent({
+				title: 'Token compress successfully',
+				message: (
+					<a href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}>
+						Transaction ID: ${txId}
+					</a>
+				)
+			});
 		} catch (error) {
 			console.error(error);
 			setDialogState(DialogState.Error);
@@ -111,9 +179,88 @@ export default function PortfolioPage() {
 			});
 		}
 	};
-	const decompress = async () => {
+
+	const decompress = async (mint: PublicKey, amount: BN) => {
 		try {
-			console.log("decompress");
+			if (!connected || !publicKey || !signTransaction) throw new WalletNotConnectedError();
+
+			setAlertDialogOpen(true);
+			setDialogState(DialogState.ConfirmingTransaction);
+			setAlertDialogConent({
+				title: "Confirming Transaction",
+				message: "Please confirm the transaction in your wallet..."
+			});
+
+			const ixs = [
+				ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }),
+			];
+
+			const destinationAta = await getAssociatedTokenAddress(mint, publicKey);
+			const isAtaInitialize = await isAccountInitialized({ connection, address: destinationAta });
+			if (!isAtaInitialize) {
+				const createAtaIx = createAssociatedTokenAccountInstruction(
+					publicKey,
+					destinationAta,
+					publicKey,
+					mint
+				);
+
+				ixs.push(createAtaIx);
+			}
+
+			// get compressed token account
+			const compressedTokenAccounts = await compressionRpc.getCompressedTokenAccountsByOwner(
+				publicKey,
+				{ mint: mint }
+			);
+
+			const { compressedProof, rootIndices } =
+				await compressionRpc.getValidityProof(
+					compressedTokenAccounts.items.map((account) => bn(account.compressedAccount.hash))
+				);
+
+			const [inputAccounts] = selectMinCompressedTokenAccountsForTransfer(
+        compressedTokenAccounts.items,
+        amount,
+      );
+
+			const decompressIx = await CompressedTokenProgram.decompress({
+				payer: publicKey,
+				inputCompressedTokenAccounts: inputAccounts,
+				toAddress: destinationAta,
+				amount: amount,
+				recentValidityProof: compressedProof,
+				recentInputStateRootIndices: rootIndices,
+			});
+
+			ixs.push(decompressIx);
+
+			const { value: blockhashCtx } = await connection.getLatestBlockhashAndContext();
+			const tx = buildTx(ixs, publicKey, blockhashCtx.blockhash);
+
+			const signedTx = await signTransaction(tx);
+
+			setDialogState(DialogState.Processing);
+			setAlertDialogConent({
+				title: "Confirming Transaction",
+				message: "Please wait while the transaction is being confirmed..."
+			})
+
+			const txId = await sendAndConfirmTx(rpc, signedTx);
+
+			// refecth tokens
+			await refetchTokenAccounts();
+			await refetchCompressedTokenAccounts();
+
+			setDialogState(DialogState.Success);
+			setAlertDialogConent({
+				title: 'Token compress successfully',
+				message: (
+					<a href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}>
+						Transaction ID: ${txId}
+					</a>
+				)
+			});
 		} catch (error) {
 			console.error(error);
 			setDialogState(DialogState.Error);
@@ -138,7 +285,12 @@ export default function PortfolioPage() {
 						<div>Loading... {isLoading}</div> :
 						userTokenAccounts && userTokenAccounts.length > 0 ?
 							<div className="border rounded-lg w-[480px] h-[480px]">
-								<TokenList tokenAccounts={userTokenAccounts} isLoading={isLoading} />
+								<TokenList
+									tokenAccounts={userTokenAccounts}
+									isLoading={isLoading}
+									compress={compress}
+									decompress={decompress}
+								/>
 							</div> :
 							<p>
 								No tokens found.
