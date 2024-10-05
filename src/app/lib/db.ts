@@ -1,8 +1,12 @@
 import { TokenMetadata } from "@prisma/client";
 
-export async function findTokenMetadataInDB(mints: string[]): Promise<TokenMetadata[]> {
+export async function findTokenMetadataInDB(
+	mints: string[],
+): Promise<TokenMetadata[]> {
 	try {
-		const response = await fetch(`/api/db/tokenMetadata?mints=${mints.join(",")}`);
+		const response = await fetch(
+			`/api/db/tokenMetadata?mints=${mints.join(",")}`,
+		);
 		return await response.json();
 	} catch (error) {
 		console.error(error);
@@ -11,15 +15,14 @@ export async function findTokenMetadataInDB(mints: string[]): Promise<TokenMetad
 	return [];
 }
 
-export async function insertTokenMetadata(tokenMetadata: TokenMetadata[]): Promise<{ ok: boolean }> {
+export async function insertTokenMetadata(
+	tokenMetadata: TokenMetadata[],
+): Promise<{ ok: boolean }> {
 	try {
-		const response = await fetch(
-			"/api/db/tokenMetadata",
-			{
-				method: "POST",
-				body: JSON.stringify(tokenMetadata)
-			}
-		);
+		const response = await fetch("/api/db/tokenMetadata", {
+			method: "POST",
+			body: JSON.stringify(tokenMetadata),
+		});
 
 		return await response.json();
 	} catch (error) {

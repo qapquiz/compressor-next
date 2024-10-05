@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import PortfolioPage from "@/components/PortfolioPage";
 
@@ -6,9 +6,7 @@ import PortfolioPage from "@/components/PortfolioPage";
 // import { TokenList } from "@/components/TokenList";
 
 export default function Home() {
-	return (
-		<PortfolioPage />
-	);
+	return <PortfolioPage />;
 
 	// return (
 	// 	<div className="w-full max-w-screen-sm h-full p-4 flex flex-col gap-4">

@@ -20,7 +20,6 @@ export const metadata: Metadata = {
 	description: "NO MORE 0.002 SOL per token",
 };
 
-
 export default function RootLayout({
 	children,
 }: Readonly<{

@@ -9,7 +9,7 @@ export const TokenMetadataSchema = z.object({
 	decimals: z.number(),
 });
 
-export type ZodTokenMetadata = z.infer<typeof TokenMetadataSchema>
+export type ZodTokenMetadata = z.infer<typeof TokenMetadataSchema>;
 
 export type TokenAmount = {
 	amount: string;
@@ -34,17 +34,17 @@ export type ParsedTokenAccountData = {
 export type WithTokenMetadata<T> = {
 	token: T;
 	metadata: ZodTokenMetadata;
-}
+};
 
 export type Token = {
 	mint: PublicKey;
 	symbol: string;
 	decimals: number;
 	image: string;
-}
+};
 
 export type TokenAccount = Token & {
 	amount: BN;
 	pricePerToken: number;
-	tokenType: 'spl' | 'compressed';
-}
+	tokenType: "spl" | "compressed";
+};

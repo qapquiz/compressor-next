@@ -1,3 +1,3 @@
 export function removeTrailingCommas(jsonString: string): string {
-  return jsonString.replace(/,\s*([\]}])/g, '$1');
+	return jsonString.replace(/,\s*([\]}])/g, "$1");
 }

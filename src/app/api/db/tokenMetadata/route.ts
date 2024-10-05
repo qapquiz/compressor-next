@@ -16,8 +16,8 @@ export async function GET(request: Request): Promise<Response> {
 			where: {
 				mint: {
 					in: mints,
-				}
-			}
+				},
+			},
 		})) as TokenMetadata[];
 
 		return Response.json(tokenMetadata);
@@ -25,7 +25,6 @@ export async function GET(request: Request): Promise<Response> {
 		console.error(error);
 		return Response.json([] as TokenMetadata[]);
 	}
-
 }
 
 // createTokenMetadata by TokenMetadata type
@@ -41,14 +40,16 @@ export async function POST(request: Request) {
 			where: {
 				mint: {
 					in: tokenMetadata.map((metadata) => metadata.mint),
-				}
-			}
+				},
+			},
 		});
 
 		const existingMintsSet = new Set(existing.map((mintObj) => mintObj.mint));
-		console.log('existing:', existingMintsSet)
-		const willInsertMints = tokenMetadata.filter((metadata) => !existingMintsSet.has(metadata.mint))
-		console.log('will insert:', willInsertMints)
+		console.log("existing:", existingMintsSet);
+		const willInsertMints = tokenMetadata.filter(
+			(metadata) => !existingMintsSet.has(metadata.mint),
+		);
+		console.log("will insert:", willInsertMints);
 
 		if (willInsertMints.length <= 0) {
 			return Response.json({ ok: true });
