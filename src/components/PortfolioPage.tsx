@@ -44,6 +44,7 @@ import {
 	createCloseAccountInstruction,
 	getAssociatedTokenAddress,
 } from "@solana/spl-token";
+import { Loader2 } from "lucide-react";
 
 enum DialogState {
 	Idle = "Idle",
@@ -118,8 +119,8 @@ export default function PortfolioPage() {
 	const userTokenAccounts = useMemo(
 		() =>
 			tokenAccounts?.concat(compressedTokenAccounts).sort((a, b) => {
-				const amountA = Number(a.amount) / 10 ** a.decimals;
-				const amountB = Number(b.amount) / 10 ** b.decimals;
+				const amountA = (Number(a.amount) / 10 ** a.decimals) * a.pricePerToken;
+				const amountB = (Number(b.amount) / 10 ** b.decimals) * b.pricePerToken;
 
 				return amountB - amountA;
 			}),
@@ -150,7 +151,7 @@ export default function PortfolioPage() {
 				ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 }),
 			];
 
-			if (!isCompressedTokenAlreadyInitialized({ connection, mint })) {
+			if (!(await isCompressedTokenAlreadyInitialized({ connection, mint }))) {
 				const createTokenPoolIx = await CompressedTokenProgram.createTokenPool({
 					feePayer: publicKey,
 					mint: mint,
@@ -315,17 +316,23 @@ export default function PortfolioPage() {
 	};
 
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="w-full max-w-screen-sm h-full p-4 flex flex-col gap-4">
 			{/* page content */}
 			<nav className="flex flex-row items-top justify-between">
-				<h1 className="text-xl font-bold font-mono">COMPRESSOR</h1>
+				<div>
+					<h1 className="text-xl font-bold font-mono">COMPRESSOR</h1>
+					<span className="font-mono text-stone-300">NO MORE 0.002 SOL</span>
+				</div>
 				<WalletButton />
 			</nav>
-			<div>
+			<div className="flex flex-1">
 				{isLoading ? (
-					<div>Loading... {isLoading}</div>
+					<div className="border border-white rounded-lg w-full h-full flex items-center justify-center gap-">
+						<Loader2 className="h-8 w-8 animate-spin" />
+						<span className="text-xl">Loading Token...</span>
+					</div>
 				) : userTokenAccounts && userTokenAccounts.length > 0 ? (
-					<div className="border rounded-lg w-[480px] h-[480px]">
+					<div className="border border-white rounded-lg w-full h-full">
 						<TokenList
 							tokenAccounts={userTokenAccounts}
 							isLoading={isLoading}
@@ -334,7 +341,9 @@ export default function PortfolioPage() {
 						/>
 					</div>
 				) : (
-					<p>No tokens found.</p>
+					<div className="border border-white rounded-lg w-full h-full flex items-center justify-center">
+						<p className="text-xl">No tokens found.</p>
+					</div>
 				)}
 			</div>
 
@@ -349,17 +358,17 @@ export default function PortfolioPage() {
 					</AlertDialogHeader>
 					{(dialogState === DialogState.Success ||
 						dialogState === DialogState.Error) && (
-						<AlertDialogFooter>
-							<AlertDialogCancel
-								onClick={() => {
-									setAlertDialogOpen(false);
-									setDialogState(DialogState.Idle);
-								}}
-							>
-								Close
-							</AlertDialogCancel>
-						</AlertDialogFooter>
-					)}
+							<AlertDialogFooter>
+								<AlertDialogCancel
+									onClick={() => {
+										setAlertDialogOpen(false);
+										setDialogState(DialogState.Idle);
+									}}
+								>
+									Close
+								</AlertDialogCancel>
+							</AlertDialogFooter>
+						)}
 				</AlertDialogContent>
 			</AlertDialog>
 		</div>

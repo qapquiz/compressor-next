@@ -26,18 +26,16 @@ export function TokenItem({
 		);
 	}
 
+	const tokenUIAmount = (tokenAccount.amount / 10 ** tokenAccount.decimals).toFixed(4);
+	const tokenValue = (Number(tokenUIAmount) * tokenAccount.pricePerToken).toFixed(2);
+
 	return (
 		<div
 			className="flex flex-row gap-4 items-top justify-between font-mono p-4 hover:bg-[#494d7e]"
-			onClick={() => {
-				tokenAccount.tokenType === "compressed"
-					? decompress(tokenAccount.mint, tokenAccount.amount)
-					: compress(tokenAccount.mint, tokenAccount.amount);
-			}}
 		>
 			<div className="flex flex-row gap-4 items-top">
 				<img
-					className="rounded-full"
+					className="rounded-full w-[48px] h-[48px]"
 					src={tokenAccount.image}
 					width={48}
 					height={48}
@@ -49,8 +47,18 @@ export function TokenItem({
 				</div>
 			</div>
 			<div className="flex flex-row items-center justify-center gap-2">
-				<span>{tokenAccount.amount / 10 ** tokenAccount.decimals}</span>
-				<Button className="font-mono font-bold">
+				<div className="flex flex-col items-end gap-1">
+					<span>{tokenUIAmount}</span>
+					<span className="text-stone-500">${tokenValue}</span>
+				</div>
+				<Button
+					className="font-mono font-bold"
+					onClick={() => {
+						tokenAccount.tokenType === "compressed"
+							? decompress(tokenAccount.mint, tokenAccount.amount)
+							: compress(tokenAccount.mint, tokenAccount.amount);
+					}}
+				>
 					{tokenAccount.tokenType === "compressed" ? "DECOMPRESS" : "COMPRESS"}
 				</Button>
 			</div>

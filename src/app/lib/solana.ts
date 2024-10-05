@@ -95,7 +95,7 @@ export async function isCompressedTokenAlreadyInitialized({
 		CompressedTokenProgram.programId,
 	);
 
-	return isAccountInitialized({ connection, address: pda });
+	return await isAccountInitialized({ connection, address: pda });
 }
 
 export async function getTokenMetadata(mint: string): Promise<TokenMetadata> {
