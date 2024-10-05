@@ -1,7 +1,7 @@
-import type { ParsedTokenAccountData, WithTokenMetadata } from "@/app/lib/types";
-import Image from "next/image";
+import type { TokenAccount } from "@/app/lib/types";
+import { Button } from "./ui/button";
 
-export function TokenItem({ tokenWithMetadata, onClick }: { tokenWithMetadata: WithTokenMetadata<ParsedTokenAccountData>, onClick: () => void }) {
+export function TokenItem({ tokenAccount, onClick }: { tokenAccount: TokenAccount, onClick: () => void }) {
 	function showBadge(isCompressed: boolean) {
 		return isCompressed ?
 			<div className="badge badge-sm badge-outline text-[#f2d3ab] border-[#f2d3ab]">COMPRESSED</div> :
@@ -14,19 +14,22 @@ export function TokenItem({ tokenWithMetadata, onClick }: { tokenWithMetadata: W
 			onClick={() => { onClick() }}
 		>
 			<div className="flex flex-row gap-4 items-top">
-				<Image
+				<img
 					className="rounded-full"
-					src={tokenWithMetadata.metadata.image}
+					src={tokenAccount.image}
 					width={48}
 					height={48}
-					alt={`${tokenWithMetadata.metadata.name} Logo`}
+					alt={`${tokenAccount.symbol} Logo`}
 				/>
 				<div className="flex flex-col gap-1">
-					<span>{tokenWithMetadata.metadata.symbol}</span>
-					{showBadge(tokenWithMetadata.metadata.isCompressed)}
+					<span className="font-mono font-bold">{tokenAccount.symbol}</span>
+					{showBadge(tokenAccount.tokenType === 'compressed')}
 				</div>
 			</div>
-			<span>{tokenWithMetadata.token.info.tokenAmount.uiAmount}</span>
+			<div className="flex flex-row items-center justify-center gap-2">
+				<span>{tokenAccount.amount / 10 ** tokenAccount.decimals}</span>
+				<Button className="font-mono font-bold">{tokenAccount.tokenType === "compressed" ? "DECOMPRESS" : "COMPRESS"}</Button>
+			</div>
 		</div>
 	);
 }

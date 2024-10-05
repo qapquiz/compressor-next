@@ -8,7 +8,7 @@ datasource db {
 }
 
 model TokenMetadata {
-    mint			Int      @id
+    mint			String @id
 		symbol		String
 		decimals	Int
 		image			String

@@ -1,9 +1,10 @@
 import { removeTrailingCommas } from "@/app/lib/json";
-import { type TokenMetadata, TokenMetadataSchema } from "@/app/lib/types";
+import { TokenMetadataSchema } from "@/app/lib/types";
 import { env } from "@/env/server";
 import { fetchDigitalAsset, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { fromWeb3JsPublicKey } from "@metaplex-foundation/umi-web3js-adapters";
+import type { TokenMetadata } from "@prisma/client";
 import { PublicKey } from "@solana/web3.js";
 
 const TOKEN_IMAGE_URL: Record<string, string> = {
@@ -14,11 +15,8 @@ const TOKEN_IMAGE_URL: Record<string, string> = {
 
 export async function GET(_request: Request, { params }: { params: { mint: string } }) {
 	const mint = params.mint;
-
 	const endpoint = env.SYNDICA_RPC_URL;
-	if (!endpoint) {
-		throw new Error("No environment variable SYNDICA_RPC");
-	}
+
 	const umi = createUmi(endpoint)
 		.use(mplTokenMetadata());
 
@@ -28,26 +26,43 @@ export async function GET(_request: Request, { params }: { params: { mint: strin
 	if (TOKEN_IMAGE_URL[digitalAsset.publicKey]) {
 		return Response.json(
 			{
-				name: digitalAsset.metadata.name,
+				mint: mint,
 				symbol: digitalAsset.metadata.symbol,
 				image: TOKEN_IMAGE_URL[digitalAsset.publicKey],
 				decimals: digitalAsset.mint.decimals,
-				isCompressed: false,
 			} as TokenMetadata
 		);
 	}
 
 	// get token from metadata
-	const metadataResponse = await fetch(digitalAsset.metadata.uri);
-	// some of the metadata contain trailing comma
-	const jsonText = JSON.parse(removeTrailingCommas(await metadataResponse.text()));
-	const metadata = {
-		...jsonText,
-		decimals: digitalAsset.mint.decimals,
-		isCompressed: false,
-	};
+	if (digitalAsset.metadata.uri) {
+		try {
+			const metadataResponse = await fetch(digitalAsset.metadata.uri);
+			// some of the metadata contain trailing comma
+			const jsonText = JSON.parse(removeTrailingCommas(await metadataResponse.text()));
+			const metadata = {
+				...jsonText,
+				mint: mint,
+				decimals: digitalAsset.mint.decimals,
+			};
 
-	TokenMetadataSchema.parse(metadata);
+			TokenMetadataSchema.parse(metadata);
 
-	return Response.json(metadata);
+			return Response.json(metadata as TokenMetadata);
+		} catch (error) {
+			return Response.json({
+				mint: mint,
+				symbol: "",
+				decimals: 0,
+				image: "",
+			})
+		}
+	}
+
+	return Response.json({
+		mint: mint,
+		symbol: "",
+		decimals: 0,
+		image: "",
+	})
 }

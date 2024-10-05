@@ -1,41 +1,41 @@
 "use client"
 
 import { TokenItem } from "./TokenItem";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useQuery } from "@tanstack/react-query";
-import { getTokens } from "@/app/lib/solana";
 import { useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { CompressModal } from "./CompressModal";
-import { ParsedTokenAccountData, WithTokenMetadata } from "@/app/lib/types";
-import { env } from "@/env/client";
+import type { TokenAccount } from "@/app/lib/types";
 
-export function TokenList() {
+type TokenListProps = {
+	tokenAccounts: TokenAccount[],
+	isLoading: boolean,
+}
+
+export function TokenList({ tokenAccounts, isLoading }: TokenListProps) {
 	const parentRef = useRef<HTMLDivElement>(null);
-	const [selectedToken, setSelectedToken] = useState<WithTokenMetadata<ParsedTokenAccountData>>()
-	const { publicKey, connected } = useWallet();
+	const [selectedToken, setSelectedToken] = useState<TokenAccount>()
+	// const { publicKey, connected } = useWallet();
 
-	const { data: parsedTokenWithMetadatas, isLoading: isLoadingTokens } = useQuery({
-		queryKey: ["tokens", publicKey],
-		queryFn: () => {
-			if (!(publicKey && connected)) {
-				return [];
-			}
-
-			return getTokens(env.NEXT_PUBLIC_SYNDICA_RPC_URL, publicKey);
-		},
-	});
+	// const { data: parsedTokenWithMetadatas, isLoading: isLoadingTokens } = useQuery({
+	// 	queryKey: ["tokens", publicKey],
+	// 	queryFn: () => {
+	// 		if (!(publicKey && connected)) {
+	// 			return [];
+	// 		}
+	//
+	// 		return getTokens(env.NEXT_PUBLIC_SYNDICA_RPC_URL, publicKey);
+	// 	},
+	// });
 
 	const rowVirtualizer = useVirtualizer({
-		count: parsedTokenWithMetadatas?.length ?? 0,
+		count: tokenAccounts?.length ?? 0,
 		getScrollElement: () => parentRef.current,
 		estimateSize: () => 80,
 	})
 
-	if (isLoadingTokens) {
+	if (isLoading) {
 		return (
 			<div className="h-full flex items-center justify-center">
-				<span className="loading loading-spinner loading-lg"></span>
+				<span className="loading loading-spinner loading-lg" />
 			</div>
 		);
 	}
@@ -45,8 +45,7 @@ export function TokenList() {
 			<div ref={parentRef} className="h-full overflow-y-auto">
 				<div className={`h-[${rowVirtualizer.getTotalSize()}px] w-full relative`}>
 					{rowVirtualizer.getVirtualItems().map((virtualItem) => {
-						console.log(JSON.stringify(virtualItem, null, 2))
-						if (parsedTokenWithMetadatas) {
+						if (tokenAccounts) {
 							return (
 								<div
 									key={virtualItem.key}
@@ -60,9 +59,8 @@ export function TokenList() {
 									}}
 								>
 									<TokenItem onClick={() => {
-										setSelectedToken(parsedTokenWithMetadatas[virtualItem.index]);
-										document.getElementById("compressModal")?.showModal();
-									}} tokenWithMetadata={parsedTokenWithMetadatas[virtualItem.index]} />
+										setSelectedToken(tokenAccounts[virtualItem.index]);
+									}} tokenAccount={tokenAccounts[virtualItem.index]} />
 								</div>
 							)
 						}
@@ -71,7 +69,6 @@ export function TokenList() {
 					})}
 				</div>
 			</div>
-			{ selectedToken && <CompressModal tokenWithMetadata={selectedToken}/> }
 		</>
 	);
 }

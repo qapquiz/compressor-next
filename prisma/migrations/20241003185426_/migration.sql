@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "TokenMetadata" (
-    "mint" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "mint" TEXT NOT NULL PRIMARY KEY,
     "symbol" TEXT NOT NULL,
     "decimals" INTEGER NOT NULL,
     "image" TEXT NOT NULL

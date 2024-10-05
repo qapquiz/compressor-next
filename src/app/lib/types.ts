@@ -1,14 +1,15 @@
+import { BN } from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 
 export const TokenMetadataSchema = z.object({
-	name: z.string(),
+	mint: z.string(),
 	symbol: z.string(),
 	image: z.string(),
 	decimals: z.number(),
-	isCompressed: z.boolean(),
 });
 
-export type TokenMetadata = z.infer<typeof TokenMetadataSchema>
+export type ZodTokenMetadata = z.infer<typeof TokenMetadataSchema>
 
 export type TokenAmount = {
 	amount: string;
@@ -32,5 +33,18 @@ export type ParsedTokenAccountData = {
 
 export type WithTokenMetadata<T> = {
 	token: T;
-	metadata: TokenMetadata;
+	metadata: ZodTokenMetadata;
+}
+
+export type Token = {
+	mint: PublicKey;
+	symbol: string;
+	decimals: number;
+	image: string;
+}
+
+export type TokenAccount = Token & {
+	amount: BN;
+	pricePerToken: number;
+	tokenType: 'spl' | 'compressed';
 }
