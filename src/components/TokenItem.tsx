@@ -2,6 +2,7 @@ import type { TokenAccount } from "@/app/lib/types";
 import { Button } from "./ui/button";
 import type { PublicKey } from "@solana/web3.js";
 import type { BN } from "@coral-xyz/anchor";
+import { Atom } from "lucide-react";
 
 type TokenItemProps = {
 	tokenAccount: TokenAccount;
@@ -16,8 +17,8 @@ export function TokenItem({
 }: TokenItemProps) {
 	function showBadge(isCompressed: boolean) {
 		return isCompressed ? (
-			<div className="badge badge-sm badge-outline text-[#f2d3ab] border-[#f2d3ab]">
-				COMPRESSED
+			<div className="flex flex-row items-center justify-center gap-1 badge badge-sm badge-outline text-[#f2d3ab] border-[#f2d3ab]">
+				<Atom className="w-[10px] h-[10px] text-#f2d3ab" /> COMPRESSED
 			</div>
 		) : (
 			<div className="badge badge-sm badge-outline text-[#c69fa5] border-[#c69fa5]">

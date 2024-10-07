@@ -48,3 +48,13 @@ export type TokenAccount = Token & {
 	pricePerToken: number;
 	tokenType: "spl" | "compressed";
 };
+
+export type JUPQuoteResponse = {
+	inputMint: string;
+	inAmount: string;
+	outputMint: string;
+	outAmount: string;
+	swapMode: "ExactIn";
+	slippageBps: number;
+	priceImpactPct: string;
+}

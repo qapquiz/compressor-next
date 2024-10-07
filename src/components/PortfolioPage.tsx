@@ -34,7 +34,7 @@ import { TokenList } from "./TokenList";
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
 import { ComputeBudgetProgram } from "@solana/web3.js";
 import type { PublicKey } from "@solana/web3.js";
-import type { BN } from "@coral-xyz/anchor";
+import { BN } from "@coral-xyz/anchor";
 import {
 	CompressedTokenProgram,
 	selectMinCompressedTokenAccountsForTransfer,
