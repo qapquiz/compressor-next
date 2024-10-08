@@ -45,8 +45,9 @@ import {
 	getAssociatedTokenAddress,
 } from "@solana/spl-token";
 import { Loader2 } from "lucide-react";
+import { CompressedSwapCard } from "./CompressedSwapCard";
 
-enum DialogState {
+export enum DialogState {
 	Idle = "Idle",
 	ConfirmingTransaction = "ConfirmingTransaction",
 	Processing = "Processing",
@@ -63,7 +64,7 @@ export default function PortfolioPage() {
 	const { connected, publicKey, signTransaction } = useWallet();
 	const { connection } = useConnection();
 	const [alertDialogOpen, setAlertDialogOpen] = useState(false);
-	const [alertDialogContent, setAlertDialogConent] = useState<{
+	const [alertDialogContent, setAlertDialogContent] = useState<{
 		title: string;
 		message: string | ReactNode;
 	}>({ title: "", message: "" });
@@ -142,7 +143,7 @@ export default function PortfolioPage() {
 
 			setAlertDialogOpen(true);
 			setDialogState(DialogState.ConfirmingTransaction);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Confirming Transaction",
 				message: "Please confirm the transaction in your wallet...",
 			});
@@ -187,7 +188,7 @@ export default function PortfolioPage() {
 			const signedTx = await signTransaction(tx);
 
 			setDialogState(DialogState.Processing);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Confirming Transaction",
 				message: "Please wait while the transaction is being confirmed...",
 			});
@@ -199,7 +200,7 @@ export default function PortfolioPage() {
 			await refetchCompressedTokenAccounts();
 
 			setDialogState(DialogState.Success);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Token compress successfully",
 				message: (
 					<a href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}>
@@ -210,7 +211,7 @@ export default function PortfolioPage() {
 		} catch (error) {
 			console.error(error);
 			setDialogState(DialogState.Error);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Compress cancelled",
 				message: `${error instanceof Error ? error.message : "Unknown error"}`,
 			});
@@ -224,7 +225,7 @@ export default function PortfolioPage() {
 
 			setAlertDialogOpen(true);
 			setDialogState(DialogState.ConfirmingTransaction);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Confirming Transaction",
 				message: "Please confirm the transaction in your wallet...",
 			});
@@ -285,7 +286,7 @@ export default function PortfolioPage() {
 			const signedTx = await signTransaction(tx);
 
 			setDialogState(DialogState.Processing);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Confirming Transaction",
 				message: "Please wait while the transaction is being confirmed...",
 			});
@@ -293,11 +294,14 @@ export default function PortfolioPage() {
 			const txId = await sendAndConfirmTx(rpc, signedTx);
 
 			// refecth tokens
-			await refetchTokenAccounts();
-			await refetchCompressedTokenAccounts();
+			// wait a bit before refetch
+			setTimeout(() => {
+				refetchTokenAccounts();
+				refetchCompressedTokenAccounts();
+			}, 3000);
 
 			setDialogState(DialogState.Success);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Token compress successfully",
 				message: (
 					<a href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}>
@@ -308,7 +312,7 @@ export default function PortfolioPage() {
 		} catch (error) {
 			console.error(error);
 			setDialogState(DialogState.Error);
-			setAlertDialogConent({
+			setAlertDialogContent({
 				title: "Decompress cancelled",
 				message: `${error instanceof Error ? error.message : "Unknown error"}`,
 			});
@@ -325,6 +329,16 @@ export default function PortfolioPage() {
 				</div>
 				<WalletButton />
 			</nav>
+			<CompressedSwapCard
+				setAlertDialogOpen={(open: boolean) => setAlertDialogOpen(open)}
+				setDialogState={(dialogState: DialogState) =>
+					setDialogState(dialogState)
+				}
+				setAlertDialogContent={(dialogConent: {
+					title: string;
+					message: string | ReactNode;
+				}) => setAlertDialogContent(dialogConent)}
+			/>
 			<div className="flex flex-1">
 				{isLoading ? (
 					<div className="border border-white rounded-lg w-full h-full flex items-center justify-center gap-">
@@ -358,17 +372,17 @@ export default function PortfolioPage() {
 					</AlertDialogHeader>
 					{(dialogState === DialogState.Success ||
 						dialogState === DialogState.Error) && (
-							<AlertDialogFooter>
-								<AlertDialogCancel
-									onClick={() => {
-										setAlertDialogOpen(false);
-										setDialogState(DialogState.Idle);
-									}}
-								>
-									Close
-								</AlertDialogCancel>
-							</AlertDialogFooter>
-						)}
+						<AlertDialogFooter>
+							<AlertDialogCancel
+								onClick={() => {
+									setAlertDialogOpen(false);
+									setDialogState(DialogState.Idle);
+								}}
+							>
+								Close
+							</AlertDialogCancel>
+						</AlertDialogFooter>
+					)}
 				</AlertDialogContent>
 			</AlertDialog>
 		</div>

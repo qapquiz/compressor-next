@@ -57,4 +57,4 @@ export type JUPQuoteResponse = {
 	swapMode: "ExactIn";
 	slippageBps: number;
 	priceImpactPct: string;
-}
+};

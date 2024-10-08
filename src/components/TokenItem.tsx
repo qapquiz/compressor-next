@@ -27,13 +27,16 @@ export function TokenItem({
 		);
 	}
 
-	const tokenUIAmount = (tokenAccount.amount / 10 ** tokenAccount.decimals).toFixed(4);
-	const tokenValue = (Number(tokenUIAmount) * tokenAccount.pricePerToken).toFixed(2);
+	const tokenUIAmount = (
+		tokenAccount.amount /
+		10 ** tokenAccount.decimals
+	).toFixed(4);
+	const tokenValue = (
+		Number(tokenUIAmount) * tokenAccount.pricePerToken
+	).toFixed(2);
 
 	return (
-		<div
-			className="flex flex-row gap-4 items-top justify-between font-mono p-4 hover:bg-[#494d7e]"
-		>
+		<div className="flex flex-row gap-4 items-top justify-between font-mono p-4 hover:bg-[#494d7e]">
 			<div className="flex flex-row gap-4 items-top">
 				<img
 					className="rounded-full w-[48px] h-[48px]"
