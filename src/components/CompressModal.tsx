@@ -1,6 +1,5 @@
 import {
 	findAssociatedTokenAddress,
-	findZkTokenPoolPda,
 	isCompressedTokenAlreadyInitialized,
 } from "@/app/lib/solana";
 import type {
