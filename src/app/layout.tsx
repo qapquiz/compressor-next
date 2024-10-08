@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-	title: "Compressor",
+	title: "POINT0x",
 	description: "NO MORE 0.002 SOL per token",
 };
 

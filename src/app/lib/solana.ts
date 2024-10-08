@@ -206,25 +206,28 @@ async function findTokenMetadataWithPrice(
 	mints: string[],
 ): Promise<TokenMetadataWithPrice[]> {
 	// fetch token metadata from DB
-	const [tokenMetadataArray, notFoundMints] = (
-		await fetchTokenMetadataFromDB(mints)
-	).unwrapOr<[TokenMetadata[], string[]]>([[], mints]);
-	const foundMints = tokenMetadataArray.map(
-		(tokenMetadata) => tokenMetadata.mint,
-	);
+	// const [tokenMetadataArray, notFoundMints] = (
+	// 	await fetchTokenMetadataFromDB(mints)
+	// ).unwrapOr<[TokenMetadata[], string[]]>([[], mints]);
+	// const foundMints = tokenMetadataArray.map(
+	// 	(tokenMetadata) => tokenMetadata.mint,
+	// );
+	//
+	// // fetch token prices
+	// const jupResponse = (await fetchTokenPricesFromJUP(foundMints)).unwrapOr({
+	// 	data: {},
+	// } as JUPPriceResponse);
+	//
+	// const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] =
+	// 	tokenMetadataArray.map((tokenMetadata) => {
+	// 		return {
+	// 			...tokenMetadata,
+	// 			pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
+	// 		};
+	// 	});
 
-	// fetch token prices
-	const jupResponse = (await fetchTokenPricesFromJUP(foundMints)).unwrapOr({
-		data: {},
-	} as JUPPriceResponse);
-
-	const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] =
-		tokenMetadataArray.map((tokenMetadata) => {
-			return {
-				...tokenMetadata,
-				pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
-			};
-		});
+	const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] = [];
+	const notFoundMints = mints;
 
 	// fetch token metadata with price from Helius
 	const assetBatch = (

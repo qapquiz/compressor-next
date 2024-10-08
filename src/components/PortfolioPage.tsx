@@ -324,7 +324,7 @@ export default function PortfolioPage() {
 			{/* page content */}
 			<nav className="flex flex-row items-top justify-between">
 				<div>
-					<h1 className="text-xl font-bold font-mono">COMPRESSOR</h1>
+					<h1 className="text-xl font-bold font-mono">POINT0x (COMPRESSOR)</h1>
 					<span className="font-mono text-stone-300">NO MORE 0.002 SOL</span>
 				</div>
 				<WalletButton />
