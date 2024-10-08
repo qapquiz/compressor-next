@@ -293,16 +293,16 @@ export async function getTokens(
 	});
 
 	// insert to database for future use
-	insertTokenMetadata(
-		tokenAccounts.map((tokenAccount) => {
-			return {
-				symbol: tokenAccount.symbol,
-				mint: tokenAccount.mint.toBase58(),
-				decimals: tokenAccount.decimals,
-				image: tokenAccount.image,
-			};
-		}),
-	);
+	// insertTokenMetadata(
+	// 	tokenAccounts.map((tokenAccount) => {
+	// 		return {
+	// 			symbol: tokenAccount.symbol,
+	// 			mint: tokenAccount.mint.toBase58(),
+	// 			decimals: tokenAccount.decimals,
+	// 			image: tokenAccount.image,
+	// 		};
+	// 	}),
+	// );
 
 	return tokenAccounts;
 }
@@ -353,16 +353,16 @@ export async function getCompressedTokens(
 		} as TokenAccount;
 	});
 
-	insertTokenMetadata(
-		tokenAccounts.map((tokenAccount) => {
-			return {
-				symbol: tokenAccount.symbol,
-				mint: tokenAccount.mint.toBase58(),
-				decimals: tokenAccount.decimals,
-				image: tokenAccount.image,
-			};
-		}),
-	);
+	// insertTokenMetadata(
+	// 	tokenAccounts.map((tokenAccount) => {
+	// 		return {
+	// 			symbol: tokenAccount.symbol,
+	// 			mint: tokenAccount.mint.toBase58(),
+	// 			decimals: tokenAccount.decimals,
+	// 			image: tokenAccount.image,
+	// 		};
+	// 	}),
+	// );
 
 	return tokenAccounts;
 }
