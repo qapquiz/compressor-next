@@ -44,10 +44,10 @@ import {
 } from "@/app/lib/solana";
 import { debounce } from "@/lib/utils";
 import { BN } from "@coral-xyz/anchor";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { BigNumber } from "bignumber.js";
 import { Effect } from "effect";
-import { createCompressedTokenSwapEffect } from "@/app/lib/swap";
+import { createCompressedTokenSwapEffect, createTokenSwapEffect } from "@/app/lib/swap";
 import { DialogState } from "./PortfolioPage";
 
 const SwapFormDataSchema = z.object({
@@ -410,17 +410,40 @@ export function CompressedSwapCard({
 					tokenAccount.decimals,
 				);
 
-				const tx = await Effect.runPromise(
-					createCompressedTokenSwapEffect({
-						connection,
-						compressionRpc,
-						publicKey,
-						tokenAMint: tokenAccount.mint,
-						tokenBMint: new PublicKey(toTokenMintValue),
-						amount: swapAmount,
-						quoteResponse,
-					}),
-				);
+				let tx: VersionedTransaction;
+				if (tokenAccount.tokenType === "spl") {
+					tx = await Effect.runPromise(
+						createTokenSwapEffect({
+							connection,
+							publicKey,
+							quoteResponse,
+						}),
+					);
+				} else {
+					tx = await Effect.runPromise(
+						createCompressedTokenSwapEffect({
+							connection,
+							compressionRpc,
+							publicKey,
+							tokenAMint: tokenAccount.mint,
+							tokenBMint: new PublicKey(toTokenMintValue),
+							amount: swapAmount,
+							quoteResponse,
+						}),
+					);
+				}
+
+				// const tx = await Effect.runPromise(
+				// 	createCompressedTokenSwapEffect({
+				// 		connection,
+				// 		compressionRpc,
+				// 		publicKey,
+				// 		tokenAMint: tokenAccount.mint,
+				// 		tokenBMint: new PublicKey(toTokenMintValue),
+				// 		amount: swapAmount,
+				// 		quoteResponse,
+				// 	}),
+				// );
 
 				console.log("tx.length", tx.serialize().length);
 
@@ -439,7 +462,7 @@ export function CompressedSwapCard({
 					title: "Swap successfully",
 					message: (
 						<a className="link link-primary" href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`} target="_blank" rel="noreferrer">
-							Transaciton: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
+							Transaction: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
 						</a>
 					),
 				});
