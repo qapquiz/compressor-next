@@ -26,7 +26,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import {
 	ReactNode,
-	SetStateAction,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -146,7 +145,7 @@ const TokenSelectionWithAmount = ({
 						// @ts-ignore
 						form.setValue("exactInAmount", maxAmount ?? "0.00");
 					}}
-					onKeyUp={() => {}}
+					onKeyUp={() => { }}
 					className="flex flex-row gap-1"
 				>
 					<span className="text-xs font-mono">{maxAmount}</span>
@@ -439,10 +438,8 @@ export function CompressedSwapCard({
 				setAlertDialogContent({
 					title: "Swap successfully",
 					message: (
-						<a
-							href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}
-						>
-							Transaction ID: ${txId}
+						<a className="link link-primary" href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`} target="_blank" rel="noreferrer">
+							Transaciton: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
 						</a>
 					),
 				});

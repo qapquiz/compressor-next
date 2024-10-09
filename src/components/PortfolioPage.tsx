@@ -196,15 +196,17 @@ export default function PortfolioPage() {
 			const txId = await sendAndConfirmTx(rpc, signedTx);
 
 			// refecth tokens
-			await refetchTokenAccounts();
-			await refetchCompressedTokenAccounts();
+			setTimeout(() => {
+				refetchTokenAccounts();
+				refetchCompressedTokenAccounts();
+			}, 3000);
 
 			setDialogState(DialogState.Success);
 			setAlertDialogContent({
 				title: "Token compress successfully",
 				message: (
-					<a href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}>
-						Transaction ID: ${txId}
+					<a className="link link-primary" href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`} target="_blank" rel="noreferrer">
+						Transaciton: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
 					</a>
 				),
 			});
@@ -304,8 +306,8 @@ export default function PortfolioPage() {
 			setAlertDialogContent({
 				title: "Token compress successfully",
 				message: (
-					<a href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}>
-						Transaction ID: ${txId}
+					<a className="link link-primary" href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`} target="_blank" rel="noreferrer">
+						Transaciton: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
 					</a>
 				),
 			});
@@ -366,23 +368,23 @@ export default function PortfolioPage() {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>{alertDialogContent.title}</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="w-full">
 							{alertDialogContent.message}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					{(dialogState === DialogState.Success ||
 						dialogState === DialogState.Error) && (
-						<AlertDialogFooter>
-							<AlertDialogCancel
-								onClick={() => {
-									setAlertDialogOpen(false);
-									setDialogState(DialogState.Idle);
-								}}
-							>
-								Close
-							</AlertDialogCancel>
-						</AlertDialogFooter>
-					)}
+							<AlertDialogFooter>
+								<AlertDialogCancel
+									onClick={() => {
+										setAlertDialogOpen(false);
+										setDialogState(DialogState.Idle);
+									}}
+								>
+									Close
+								</AlertDialogCancel>
+							</AlertDialogFooter>
+						)}
 				</AlertDialogContent>
 			</AlertDialog>
 		</div>
