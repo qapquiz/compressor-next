@@ -206,7 +206,7 @@ export default function PortfolioPage() {
 				title: "Token compress successfully",
 				message: (
 					<a className="link link-primary" href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`} target="_blank" rel="noreferrer">
-						Transaciton: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
+						Transaction: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
 					</a>
 				),
 			});
@@ -307,7 +307,7 @@ export default function PortfolioPage() {
 				title: "Token compress successfully",
 				message: (
 					<a className="link link-primary" href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`} target="_blank" rel="noreferrer">
-						Transaciton: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
+						Transaction: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
 					</a>
 				),
 			});

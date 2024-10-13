@@ -326,6 +326,22 @@ export function createCompressedTokenSwapEffect(props: {
 				publicKey,
 			}),
 		),
+		// close token account A
+		Effect.bind("closeAccountTokenAIx", () => {
+			const ataEffect = Effect.promise(() =>
+				getAssociatedTokenAddress(tokenAMint, publicKey),
+			);
+			return pipe(
+				ataEffect,
+				Effect.flatMap((ata: PublicKey) => {
+					return createCloseAccountEffect({
+						accountToClose: ata,
+						accountToReceiveRent: publicKey,
+						authority: publicKey,
+					});
+				}),
+			);
+		}),
 		Effect.bind("compressTokenBIxs", () =>
 			createCompressTokenInstructionEffect({
 				publicKey,
@@ -338,12 +354,14 @@ export function createCompressedTokenSwapEffect(props: {
 				decompressTokenAIxs,
 				jupIxsWithLUTs: { jupSwapIxs, addressLookupTableAddresses },
 				compressTokenBIxs,
+				closeAccountTokenAIx,
 			}) => {
 				return {
 					ixs: [
 						...decompressTokenAIxs,
 						...jupSwapIxs,
 						// ...compressTokenBIxs,
+						closeAccountTokenAIx,
 					],
 					luts: addressLookupTableAddresses,
 				};
@@ -358,4 +376,33 @@ export function createCompressedTokenSwapEffect(props: {
 			});
 		}),
 	);
+}
+
+export function createTokenSwapEffect(props: {
+	connection: Connection;
+	publicKey: PublicKey;
+	quoteResponse: JUPQuoteResponse;
+}): Effect.Effect<VersionedTransaction, never, never> {
+	const {
+		connection,
+		publicKey,
+		quoteResponse,
+	} = props;
+
+	return Effect.Do.pipe(
+		Effect.bind("jupIxsWithLUTs", () =>
+			createJupSwapInstructionsEffect({
+				quoteResponse,
+				publicKey,
+			}),
+		),
+		Effect.flatMap(({ jupIxsWithLUTs: { jupSwapIxs, addressLookupTableAddresses } }) => {
+			return buildVersionedTransactionEffect({
+				connection,
+				publicKey,
+				ixs: jupSwapIxs,
+				luts: addressLookupTableAddresses,
+			});
+		}),
+	)
 }
