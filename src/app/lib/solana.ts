@@ -36,6 +36,7 @@ import type {
 import type { TokenMetadata } from "@prisma/client";
 import type { Result } from "neverthrow";
 import BigNumber from "bignumber.js";
+import { findTokenMetadataWithPrice } from "./getTokenMetadata";
 
 const heliusAssetBatch = z.object({
 	interface: z.enum(["FungibleToken"]),
@@ -66,9 +67,9 @@ const heliusAssetBatch = z.object({
 
 export type HeliusAssetBatch = z.infer<typeof heliusAssetBatch>;
 
-type TokenMetadataWithPrice = TokenMetadata & { pricePerToken: number };
+export type TokenMetadataWithPrice = TokenMetadata & { pricePerToken: number };
 
-type JUPPriceResponse = {
+export type JUPPriceResponse = {
 	data: {
 		[mint: string]: {
 			id: string;
@@ -202,52 +203,52 @@ async function fetchTokenMetadataFromDB(
 	}
 }
 
-async function findTokenMetadataWithPrice(
-	mints: string[],
-): Promise<TokenMetadataWithPrice[]> {
-	// fetch token metadata from DB
-	const [tokenMetadataArray, notFoundMints] = (
-		await fetchTokenMetadataFromDB(mints)
-	).unwrapOr<[TokenMetadata[], string[]]>([[], mints]);
-	const foundMints = tokenMetadataArray.map(
-		(tokenMetadata) => tokenMetadata.mint,
-	);
-
-	// fetch token prices
-	const jupResponse = (await fetchTokenPricesFromJUP(foundMints)).unwrapOr({
-		data: {},
-	} as JUPPriceResponse);
-
-	const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] =
-		tokenMetadataArray.map((tokenMetadata) => {
-			return {
-				...tokenMetadata,
-				pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
-			};
-		});
-
-	// const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] = [];
-	// const notFoundMints = mints;
-
-	// fetch token metadata with price from Helius
-	const assetBatch = (
-		await getAssetBatch(env.NEXT_PUBLIC_HELIUS_RPC_URL, notFoundMints)
-	).unwrapOr([]);
-	const tokenMetadataWithPriceArrayFromHelius = assetBatch.map((asset) => {
-		return {
-			mint: asset.id,
-			symbol: asset.token_info?.symbol ?? "",
-			decimals: asset.token_info?.decimals ?? 0,
-			image: asset.content?.links?.image ?? "",
-			pricePerToken: asset.token_info?.price_info?.price_per_token ?? 0,
-		} as TokenMetadataWithPrice;
-	});
-
-	return [
-		...tokenMetadataWithPriceArray,
-		...tokenMetadataWithPriceArrayFromHelius,
-	];
-}
+// async function findTokenMetadataWithPrice(
+// 	mints: string[],
+// ): Promise<TokenMetadataWithPrice[]> {
+// 	// fetch token metadata from DB
+// 	const [tokenMetadataArray, notFoundMints] = (
+// 		await fetchTokenMetadataFromDB(mints)
+// 	).unwrapOr<[TokenMetadata[], string[]]>([[], mints]);
+// 	const foundMints = tokenMetadataArray.map(
+// 		(tokenMetadata) => tokenMetadata.mint,
+// 	);
+//
+// 	// fetch token prices
+// 	const jupResponse = (await fetchTokenPricesFromJUP(foundMints)).unwrapOr({
+// 		data: {},
+// 	} as JUPPriceResponse);
+//
+// 	const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] =
+// 		tokenMetadataArray.map((tokenMetadata) => {
+// 			return {
+// 				...tokenMetadata,
+// 				pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
+// 			};
+// 		});
+//
+// 	// const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] = [];
+// 	// const notFoundMints = mints;
+//
+// 	// fetch token metadata with price from Helius
+// 	const assetBatch = (
+// 		await getAssetBatch(env.NEXT_PUBLIC_HELIUS_RPC_URL, notFoundMints)
+// 	).unwrapOr([]);
+// 	const tokenMetadataWithPriceArrayFromHelius = assetBatch.map((asset) => {
+// 		return {
+// 			mint: asset.id,
+// 			symbol: asset.token_info?.symbol ?? "",
+// 			decimals: asset.token_info?.decimals ?? 0,
+// 			image: asset.content?.links?.image ?? "",
+// 			pricePerToken: asset.token_info?.price_info?.price_per_token ?? 0,
+// 		} as TokenMetadataWithPrice;
+// 	});
+//
+// 	return [
+// 		...tokenMetadataWithPriceArray,
+// 		...tokenMetadataWithPriceArrayFromHelius,
+// 	];
+// }
 
 export async function getTokens(
 	endpoint: string,
@@ -274,7 +275,7 @@ export async function getTokens(
 		});
 
 	const mints = tokens.map((token) => token.info.mint);
-	const tokenMetadataWithPriceArray = await findTokenMetadataWithPrice(mints);
+	const tokenMetadataWithPriceArray = await findTokenMetadataWithPrice(mints.map((mint) => new PublicKey(mint)));
 
 	const tokenAccounts = tokens.map((token) => {
 		const tokenMetadataWithPrice = tokenMetadataWithPriceArray.find(
