@@ -206,28 +206,28 @@ async function findTokenMetadataWithPrice(
 	mints: string[],
 ): Promise<TokenMetadataWithPrice[]> {
 	// fetch token metadata from DB
-	// const [tokenMetadataArray, notFoundMints] = (
-	// 	await fetchTokenMetadataFromDB(mints)
-	// ).unwrapOr<[TokenMetadata[], string[]]>([[], mints]);
-	// const foundMints = tokenMetadataArray.map(
-	// 	(tokenMetadata) => tokenMetadata.mint,
-	// );
-	//
-	// // fetch token prices
-	// const jupResponse = (await fetchTokenPricesFromJUP(foundMints)).unwrapOr({
-	// 	data: {},
-	// } as JUPPriceResponse);
-	//
-	// const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] =
-	// 	tokenMetadataArray.map((tokenMetadata) => {
-	// 		return {
-	// 			...tokenMetadata,
-	// 			pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
-	// 		};
-	// 	});
+	const [tokenMetadataArray, notFoundMints] = (
+		await fetchTokenMetadataFromDB(mints)
+	).unwrapOr<[TokenMetadata[], string[]]>([[], mints]);
+	const foundMints = tokenMetadataArray.map(
+		(tokenMetadata) => tokenMetadata.mint,
+	);
 
-	const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] = [];
-	const notFoundMints = mints;
+	// fetch token prices
+	const jupResponse = (await fetchTokenPricesFromJUP(foundMints)).unwrapOr({
+		data: {},
+	} as JUPPriceResponse);
+
+	const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] =
+		tokenMetadataArray.map((tokenMetadata) => {
+			return {
+				...tokenMetadata,
+				pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
+			};
+		});
+
+	// const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] = [];
+	// const notFoundMints = mints;
 
 	// fetch token metadata with price from Helius
 	const assetBatch = (
@@ -293,16 +293,16 @@ export async function getTokens(
 	});
 
 	// insert to database for future use
-	// insertTokenMetadata(
-	// 	tokenAccounts.map((tokenAccount) => {
-	// 		return {
-	// 			symbol: tokenAccount.symbol,
-	// 			mint: tokenAccount.mint.toBase58(),
-	// 			decimals: tokenAccount.decimals,
-	// 			image: tokenAccount.image,
-	// 		};
-	// 	}),
-	// );
+	insertTokenMetadata(
+		tokenAccounts.map((tokenAccount) => {
+			return {
+				symbol: tokenAccount.symbol,
+				mint: tokenAccount.mint.toBase58(),
+				decimals: tokenAccount.decimals,
+				image: tokenAccount.image,
+			};
+		}),
+	);
 
 	return tokenAccounts;
 }
@@ -353,16 +353,16 @@ export async function getCompressedTokens(
 		} as TokenAccount;
 	});
 
-	// insertTokenMetadata(
-	// 	tokenAccounts.map((tokenAccount) => {
-	// 		return {
-	// 			symbol: tokenAccount.symbol,
-	// 			mint: tokenAccount.mint.toBase58(),
-	// 			decimals: tokenAccount.decimals,
-	// 			image: tokenAccount.image,
-	// 		};
-	// 	}),
-	// );
+	insertTokenMetadata(
+		tokenAccounts.map((tokenAccount) => {
+			return {
+				symbol: tokenAccount.symbol,
+				mint: tokenAccount.mint.toBase58(),
+				decimals: tokenAccount.decimals,
+				image: tokenAccount.image,
+			};
+		}),
+	);
 
 	return tokenAccounts;
 }
