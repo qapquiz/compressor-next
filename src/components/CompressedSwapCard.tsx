@@ -24,8 +24,8 @@ import { useForm } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
+import type { ReactNode } from "react";
 import {
-	ReactNode,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -44,7 +44,8 @@ import {
 } from "@/app/lib/solana";
 import { debounce } from "@/lib/utils";
 import { BN } from "@coral-xyz/anchor";
-import { PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
+import type { VersionedTransaction } from "@solana/web3.js";
 import { BigNumber } from "bignumber.js";
 import { Effect } from "effect";
 import { createCompressedTokenSwapEffect, createTokenSwapEffect } from "@/app/lib/swap";
@@ -432,20 +433,6 @@ export function CompressedSwapCard({
 						}),
 					);
 				}
-
-				// const tx = await Effect.runPromise(
-				// 	createCompressedTokenSwapEffect({
-				// 		connection,
-				// 		compressionRpc,
-				// 		publicKey,
-				// 		tokenAMint: tokenAccount.mint,
-				// 		tokenBMint: new PublicKey(toTokenMintValue),
-				// 		amount: swapAmount,
-				// 		quoteResponse,
-				// 	}),
-				// );
-
-				console.log("tx.length", tx.serialize().length);
 
 				const signedTx = await signTransaction(tx);
 

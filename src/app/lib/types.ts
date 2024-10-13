@@ -1,5 +1,5 @@
-import { BN } from "@coral-xyz/anchor";
-import { PublicKey } from "@solana/web3.js";
+import type { BN } from "@coral-xyz/anchor";
+import type { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 
 export const TokenMetadataSchema = z.object({

@@ -1,35 +1,18 @@
 import {
-	createAssociatedTokenAccountInstruction,
-	createCloseAccountInstruction,
-	getAssociatedTokenAddress,
 	TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import {
-	AddressLookupTableAccount,
-	ComputeBudgetProgram,
-	Connection,
-	PublicKey,
-	TransactionInstruction,
-	TransactionMessage,
-	VersionedTransaction,
-} from "@solana/web3.js";
+import type { AddressLookupTableAccount, Connection, PublicKey } from "@solana/web3.js"
 import {
 	CompressedTokenProgram,
-	selectMinCompressedTokenAccountsForTransfer,
 } from "@lightprotocol/compressed-token";
 import { z } from "zod";
 import { insertTokenMetadata } from "./db";
 import { env } from "@/env/client";
 import { BN } from "@coral-xyz/anchor";
 import { ok, err } from "neverthrow";
-import { DatabaseError, HttpError } from "@/lib/errors";
-import {
-	bn,
-	defaultTestStateTreeAccounts,
-	type Rpc,
-} from "@lightprotocol/stateless.js";
+import { HttpError } from "@/lib/errors";
+import type { Rpc } from "@lightprotocol/stateless.js";
 import type {
-	JUPQuoteResponse,
 	ParsedTokenAccountData,
 	TokenAccount,
 } from "./types";
@@ -162,93 +145,6 @@ async function getAssetBatch(
 		);
 	}
 }
-
-async function fetchTokenPricesFromJUP(
-	mints: string[],
-): Promise<Result<JUPPriceResponse, HttpError>> {
-	try {
-		const response = await fetch(
-			`https://api.jup.ag/price/v2?ids=${mints.join(",")}`,
-		);
-		return ok((await response.json()) as JUPPriceResponse);
-	} catch (error) {
-		return err(
-			new HttpError({
-				message: error instanceof Error ? error.message : "Unknown error",
-			}),
-		);
-	}
-}
-
-async function fetchTokenMetadataFromDB(
-	mints: string[],
-): Promise<Result<[TokenMetadata[], string[]], DatabaseError>> {
-	try {
-		const response = await fetch(
-			`/api/db/tokenMetadata?mints=${mints.join(",")}`,
-		);
-		const tokenMetadata = (await response.json()) as TokenMetadata[];
-		const tokenMetadataMap = new Map(
-			tokenMetadata.map((tokenMetadata) => [tokenMetadata.mint, tokenMetadata]),
-		);
-		const notFoundMints = mints.filter((mint) => !tokenMetadataMap.has(mint));
-
-		return ok([tokenMetadata, notFoundMints]);
-	} catch (error) {
-		return err(
-			new DatabaseError({
-				message: error instanceof Error ? error.message : "Unknown error",
-			}),
-		);
-	}
-}
-
-// async function findTokenMetadataWithPrice(
-// 	mints: string[],
-// ): Promise<TokenMetadataWithPrice[]> {
-// 	// fetch token metadata from DB
-// 	const [tokenMetadataArray, notFoundMints] = (
-// 		await fetchTokenMetadataFromDB(mints)
-// 	).unwrapOr<[TokenMetadata[], string[]]>([[], mints]);
-// 	const foundMints = tokenMetadataArray.map(
-// 		(tokenMetadata) => tokenMetadata.mint,
-// 	);
-//
-// 	// fetch token prices
-// 	const jupResponse = (await fetchTokenPricesFromJUP(foundMints)).unwrapOr({
-// 		data: {},
-// 	} as JUPPriceResponse);
-//
-// 	const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] =
-// 		tokenMetadataArray.map((tokenMetadata) => {
-// 			return {
-// 				...tokenMetadata,
-// 				pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
-// 			};
-// 		});
-//
-// 	// const tokenMetadataWithPriceArray: TokenMetadataWithPrice[] = [];
-// 	// const notFoundMints = mints;
-//
-// 	// fetch token metadata with price from Helius
-// 	const assetBatch = (
-// 		await getAssetBatch(env.NEXT_PUBLIC_HELIUS_RPC_URL, notFoundMints)
-// 	).unwrapOr([]);
-// 	const tokenMetadataWithPriceArrayFromHelius = assetBatch.map((asset) => {
-// 		return {
-// 			mint: asset.id,
-// 			symbol: asset.token_info?.symbol ?? "",
-// 			decimals: asset.token_info?.decimals ?? 0,
-// 			image: asset.content?.links?.image ?? "",
-// 			pricePerToken: asset.token_info?.price_info?.price_per_token ?? 0,
-// 		} as TokenMetadataWithPrice;
-// 	});
-//
-// 	return [
-// 		...tokenMetadataWithPriceArray,
-// 		...tokenMetadataWithPriceArrayFromHelius,
-// 	];
-// }
 
 export async function getTokens(
 	endpoint: string,
