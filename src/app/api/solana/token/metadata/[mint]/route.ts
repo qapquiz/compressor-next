@@ -31,7 +31,16 @@ export async function GET(
 	const digitalAsset = await fetchDigitalAsset(
 		umi,
 		fromWeb3JsPublicKey(new PublicKey(mint)),
-	);
+	).catch(() => undefined);
+
+	if (!digitalAsset) {
+		return Response.json({
+			mint: mint,
+			symbol: "",
+			decimals: 0,
+			image: "",
+		});
+	}
 
 	// find token image in local list first
 	if (TOKEN_IMAGE_URL[digitalAsset.publicKey]) {
