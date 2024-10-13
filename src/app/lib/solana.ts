@@ -1,10 +1,10 @@
-import {
-	TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import type { AddressLookupTableAccount, Connection, PublicKey } from "@solana/web3.js"
-import {
-	CompressedTokenProgram,
-} from "@lightprotocol/compressed-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import type {
+	AddressLookupTableAccount,
+	Connection,
+	PublicKey,
+} from "@solana/web3.js";
+import { CompressedTokenProgram } from "@lightprotocol/compressed-token";
 import { z } from "zod";
 import { insertTokenMetadata } from "./db";
 import { env } from "@/env/client";
@@ -12,10 +12,7 @@ import { BN } from "@coral-xyz/anchor";
 import { ok, err } from "neverthrow";
 import { HttpError } from "@/lib/errors";
 import type { Rpc } from "@lightprotocol/stateless.js";
-import type {
-	ParsedTokenAccountData,
-	TokenAccount,
-} from "./types";
+import type { ParsedTokenAccountData, TokenAccount } from "./types";
 import type { TokenMetadata } from "@prisma/client";
 import type { Result } from "neverthrow";
 import BigNumber from "bignumber.js";
@@ -171,7 +168,9 @@ export async function getTokens(
 		});
 
 	const mints = tokens.map((token) => token.info.mint);
-	const tokenMetadataWithPriceArray = await findTokenMetadataWithPrice(mints.map((mint) => new PublicKey(mint)));
+	const tokenMetadataWithPriceArray = await findTokenMetadataWithPrice(
+		mints.map((mint) => new PublicKey(mint)),
+	);
 
 	const tokenAccounts = tokens.map((token) => {
 		const tokenMetadataWithPrice = tokenMetadataWithPriceArray.find(

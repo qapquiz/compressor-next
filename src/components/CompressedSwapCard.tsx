@@ -25,12 +25,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
 import type { ReactNode } from "react";
-import {
-	useCallback,
-	useEffect,
-	useMemo,
-	useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { JUPQuoteResponse, TokenAccount } from "@/app/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { bn, createRpc, sendAndConfirmTx } from "@lightprotocol/stateless.js";
@@ -48,7 +43,10 @@ import { PublicKey } from "@solana/web3.js";
 import type { VersionedTransaction } from "@solana/web3.js";
 import { BigNumber } from "bignumber.js";
 import { Effect } from "effect";
-import { createCompressedTokenSwapEffect, createTokenSwapEffect } from "@/app/lib/swap";
+import {
+	createCompressedTokenSwapEffect,
+	createTokenSwapEffect,
+} from "@/app/lib/swap";
 import { DialogState } from "./PortfolioPage";
 
 const SwapFormDataSchema = z.object({
@@ -146,7 +144,7 @@ const TokenSelectionWithAmount = ({
 						// @ts-ignore
 						form.setValue("exactInAmount", maxAmount ?? "0.00");
 					}}
-					onKeyUp={() => { }}
+					onKeyUp={() => {}}
 					className="flex flex-row gap-1"
 				>
 					<span className="text-xs font-mono">{maxAmount}</span>
@@ -448,8 +446,14 @@ export function CompressedSwapCard({
 				setAlertDialogContent({
 					title: "Swap successfully",
 					message: (
-						<a className="link link-primary" href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`} target="_blank" rel="noreferrer">
-							Transaction: https://proton.helius.dev/tx/{txId.slice(0, 4)}...{txId.slice(-4)}
+						<a
+							className="link link-primary"
+							href={`https://photon.helius.dev/tx/${txId}?cluster=mainnet-beta`}
+							target="_blank"
+							rel="noreferrer"
+						>
+							Transaction: https://proton.helius.dev/tx/{txId.slice(0, 4)}...
+							{txId.slice(-4)}
 						</a>
 					),
 				});

@@ -1,21 +1,25 @@
 import { Console, Effect } from "effect";
 import { PublicKey } from "@solana/web3.js";
 import type { TokenMetadata } from "@prisma/client";
-import type { HeliusAssetBatch, JUPPriceResponse, TokenMetadataWithPrice } from "./solana";
+import type {
+	HeliusAssetBatch,
+	JUPPriceResponse,
+	TokenMetadataWithPrice,
+} from "./solana";
 import { env } from "@/env/client";
 
 type GetTokenMetadataResult = {
 	founds: TokenMetadata[];
 	notFoundMints: PublicKey[];
-}
+};
 
 type GetTokenMetadataWithPriceResult = {
 	founds: TokenMetadataWithPrice[];
 	notFoundMints: PublicKey[];
-}
+};
 
 function getTokenMetadataFromDB(
-	mints: PublicKey[]
+	mints: PublicKey[],
 ): Effect.Effect<GetTokenMetadataResult, never, never> {
 	return Effect.promise(async () => {
 		const mintsString = mints.map((mint) => mint.toBase58());
@@ -26,17 +30,21 @@ function getTokenMetadataFromDB(
 		const tokenMetadataMap = new Map(
 			tokenMetadata.map((tokenMetadata) => [tokenMetadata.mint, tokenMetadata]),
 		);
-		const notFoundMints = mintsString.filter((mint) => !tokenMetadataMap.has(mint));
+		const notFoundMints = mintsString.filter(
+			(mint) => !tokenMetadataMap.has(mint),
+		);
 
 		return {
 			founds: tokenMetadata,
-			notFoundMints: notFoundMints.map((mintString) => new PublicKey(mintString)),
-		}
+			notFoundMints: notFoundMints.map(
+				(mintString) => new PublicKey(mintString),
+			),
+		};
 	});
 }
 
 function getTokenMetadataFromOnChain(
-	mints: PublicKey[]
+	mints: PublicKey[],
 ): Effect.Effect<GetTokenMetadataResult, never, never> {
 	return Effect.promise(async () => {
 		const mintString = mints.map((mint) => mint.toBase58());
@@ -56,14 +64,14 @@ function getTokenMetadataFromOnChain(
 
 		return {
 			founds,
-			notFoundMints
+			notFoundMints,
 		};
 	});
 }
 
 function getTokenMetadataWithPriceFromHelius(
 	heliusUrl: string,
-	mints: PublicKey[]
+	mints: PublicKey[],
 ): Effect.Effect<GetTokenMetadataWithPriceResult, never, never> {
 	return Effect.promise(async () => {
 		const mintsString = mints.map((mint) => mint.toBase58());
@@ -71,7 +79,7 @@ function getTokenMetadataWithPriceFromHelius(
 			return {
 				founds: [],
 				notFoundMints: [],
-			}
+			};
 		}
 
 		const response = await fetch(heliusUrl, {
@@ -99,23 +107,25 @@ function getTokenMetadataWithPriceFromHelius(
 			} as TokenMetadataWithPrice;
 		});
 
-		const tokenMetadataMap = new Map(
-			result.map((asset) => [asset.id, asset]),
+		const tokenMetadataMap = new Map(result.map((asset) => [asset.id, asset]));
+		const notFoundMints = mintsString.filter(
+			(mint) => !tokenMetadataMap.has(mint),
 		);
-		const notFoundMints = mintsString.filter((mint) => !tokenMetadataMap.has(mint));
 
 		return {
 			founds: tokenMetadataWithPriceArrayFromHelius,
 			notFoundMints: notFoundMints.map((mint) => new PublicKey(mint)),
-		}
-	})
+		};
+	});
 }
 
 function getPriceFromJUP(
-	tokenMetadataList: TokenMetadata[]
+	tokenMetadataList: TokenMetadata[],
 ): Effect.Effect<TokenMetadataWithPrice[], never, never> {
 	return Effect.promise(async () => {
-		const mintsString = tokenMetadataList.map((tokenMetadata) => tokenMetadata.mint);
+		const mintsString = tokenMetadataList.map(
+			(tokenMetadata) => tokenMetadata.mint,
+		);
 		const response = await fetch(
 			`https://api.jup.ag/price/v2?ids=${mintsString.join(",")}`,
 		);
@@ -124,7 +134,9 @@ function getPriceFromJUP(
 			tokenMetadataList.map((tokenMetadata) => {
 				return {
 					...tokenMetadata,
-					pricePerToken: Number(jupResponse.data[tokenMetadata.mint]?.price ?? 0),
+					pricePerToken: Number(
+						jupResponse.data[tokenMetadata.mint]?.price ?? 0,
+					),
 				};
 			});
 
@@ -133,29 +145,48 @@ function getPriceFromJUP(
 }
 
 function getTokenMetadataWithPriceEffect(
-	mints: PublicKey[]
+	mints: PublicKey[],
 ): Effect.Effect<TokenMetadataWithPrice[], never, never> {
 	const program = Effect.Do.pipe(
 		Effect.bind("getFromDBResult", () => getTokenMetadataFromDB(mints)),
-		Effect.bind("getFromOnChainResult", ({ getFromDBResult }) => getTokenMetadataFromOnChain(getFromDBResult.notFoundMints)),
-		Effect.bind("tokenMetadataWithPriceFromJup", ({ getFromDBResult, getFromOnChainResult }) => {
-			return getPriceFromJUP([...getFromDBResult.founds, ...getFromOnChainResult.founds]);
-		}),
-		Effect.bind("tokenMetadataWithPriceFromHelius", ({ getFromOnChainResult }) => {
-			return getTokenMetadataWithPriceFromHelius(env.NEXT_PUBLIC_HELIUS_RPC_URL, getFromOnChainResult.notFoundMints);
-		}),
-		Effect.tap(({ tokenMetadataWithPriceFromHelius }) => Console.log(`notFoundMints: ${tokenMetadataWithPriceFromHelius.notFoundMints}`)),
-		Effect.map(({ tokenMetadataWithPriceFromJup, tokenMetadataWithPriceFromHelius }) => {
-			return [
-				...tokenMetadataWithPriceFromJup,
-				...tokenMetadataWithPriceFromHelius.founds,
-			];
-		}),
+		Effect.bind("getFromOnChainResult", ({ getFromDBResult }) =>
+			getTokenMetadataFromOnChain(getFromDBResult.notFoundMints),
+		),
+		Effect.bind(
+			"tokenMetadataWithPriceFromJup",
+			({ getFromDBResult, getFromOnChainResult }) => {
+				return getPriceFromJUP([
+					...getFromDBResult.founds,
+					...getFromOnChainResult.founds,
+				]);
+			},
+		),
+		Effect.bind(
+			"tokenMetadataWithPriceFromHelius",
+			({ getFromOnChainResult }) => {
+				return getTokenMetadataWithPriceFromHelius(
+					env.NEXT_PUBLIC_HELIUS_RPC_URL,
+					getFromOnChainResult.notFoundMints,
+				);
+			},
+		),
+		Effect.tap(({ tokenMetadataWithPriceFromHelius }) =>
+			Console.log(
+				`notFoundMints: ${tokenMetadataWithPriceFromHelius.notFoundMints}`,
+			),
+		),
+		Effect.map(
+			({ tokenMetadataWithPriceFromJup, tokenMetadataWithPriceFromHelius }) => {
+				return [
+					...tokenMetadataWithPriceFromJup,
+					...tokenMetadataWithPriceFromHelius.founds,
+				];
+			},
+		),
 	);
 
 	return program;
 }
 
-export const findTokenMetadataWithPrice = async (mints: PublicKey[]) => (
-	Effect.runPromise(getTokenMetadataWithPriceEffect(mints))
-);
+export const findTokenMetadataWithPrice = async (mints: PublicKey[]) =>
+	Effect.runPromise(getTokenMetadataWithPriceEffect(mints));

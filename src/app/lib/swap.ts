@@ -383,11 +383,7 @@ export function createTokenSwapEffect(props: {
 	publicKey: PublicKey;
 	quoteResponse: JUPQuoteResponse;
 }): Effect.Effect<VersionedTransaction, never, never> {
-	const {
-		connection,
-		publicKey,
-		quoteResponse,
-	} = props;
+	const { connection, publicKey, quoteResponse } = props;
 
 	return Effect.Do.pipe(
 		Effect.bind("jupIxsWithLUTs", () =>
@@ -396,13 +392,15 @@ export function createTokenSwapEffect(props: {
 				publicKey,
 			}),
 		),
-		Effect.flatMap(({ jupIxsWithLUTs: { jupSwapIxs, addressLookupTableAddresses } }) => {
-			return buildVersionedTransactionEffect({
-				connection,
-				publicKey,
-				ixs: jupSwapIxs,
-				luts: addressLookupTableAddresses,
-			});
-		}),
-	)
+		Effect.flatMap(
+			({ jupIxsWithLUTs: { jupSwapIxs, addressLookupTableAddresses } }) => {
+				return buildVersionedTransactionEffect({
+					connection,
+					publicKey,
+					ixs: jupSwapIxs,
+					luts: addressLookupTableAddresses,
+				});
+			},
+		),
+	);
 }
