@@ -1,9 +1,6 @@
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import type {
-	AddressLookupTableAccount,
-	Connection,
-	PublicKey,
-} from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
+import type { AddressLookupTableAccount } from "@solana/web3.js";
 import { CompressedTokenProgram } from "@lightprotocol/compressed-token";
 import { z } from "zod";
 import { insertTokenMetadata } from "./db";
